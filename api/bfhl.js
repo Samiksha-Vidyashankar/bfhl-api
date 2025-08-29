@@ -1,6 +1,4 @@
 // /api/bfhl.js — Vercel Serverless Function
-// Edit the placeholders below or set environment variables in Vercel:
-// EMAIL, ROLL_NUMBER, FULL_NAME (lowercase recommended), DOB_DDMMYYYY (e.g., "17091999")
 
 export default function handler(req, res) {
   const EMAIL = process.env.EMAIL || "your_email@vit.edu";
@@ -23,50 +21,35 @@ export default function handler(req, res) {
   if (!body || !Array.isArray(body.data)) {
     return res.status(400).json({
       is_success: false,
-      message: "Invalid request. Expected JSON with an array field 'data'.",
+      message: "Invalid request. Expected { data: [...] }"
     });
   }
 
   const data = body.data.map(String);
-
   const odd_numbers = [];
   const even_numbers = [];
   const alphabets = [];
   const special_characters = [];
   const lettersForConcat = [];
-
   let sum = 0;
 
-  // Helpers
   const isIntegerString = (s) => /^[+-]?\d+$/.test(s);
-  const isAlphaString = (s) => /^[A-Za-z]+$/.test(s);
-  const isSpecialOnly = (s) => /^[^A-Za-z0-9]+$/.test(s);
+  const isAlphaString  = (s) => /^[A-Za-z]+$/.test(s);
+  const isSpecialOnly  = (s) => /^[^A-Za-z0-9]+$/.test(s);
 
   for (const token of data) {
-    // Classify whole tokens for arrays
     if (isIntegerString(token)) {
       const n = parseInt(token, 10);
       sum += n;
-      if (Math.abs(n) % 2 === 0) {
-        even_numbers.push(token);
-      } else {
-        odd_numbers.push(token);
-      }
+      (Math.abs(n) % 2 === 0 ? even_numbers : odd_numbers).push(token);
     } else if (isAlphaString(token)) {
       alphabets.push(token.toUpperCase());
     } else if (isSpecialOnly(token)) {
       special_characters.push(token);
     }
-
-    // Extract letters for concat_string regardless of token type
-    for (const ch of token) {
-      if (/[A-Za-z]/.test(ch)) {
-        lettersForConcat.push(ch.toLowerCase());
-      }
-    }
+    for (const ch of token) if (/[A-Za-z]/.test(ch)) lettersForConcat.push(ch.toLowerCase());
   }
 
-  // Build concat_string: reverse all letters and apply alternating caps starting with UPPER
   let concat_string = "";
   for (let i = 0; i < lettersForConcat.length; i++) {
     const ch = lettersForConcat[lettersForConcat.length - 1 - i];
@@ -83,6 +66,6 @@ export default function handler(req, res) {
     alphabets,
     special_characters,
     sum: String(sum),
-    concat_string,
+    concat_string
   });
 }
